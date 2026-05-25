@@ -1,0 +1,409 @@
+
+<h2 class="sr-only">Agency client and project management dashboard with revenue tracking</h2>
+<style>
+.nav-btn { background: none; border: none; padding: 6px 14px; border-radius: var(--border-radius-md); font-size: 13px; cursor: pointer; color: var(--color-text-secondary); }
+.nav-btn.active { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); color: var(--color-text-primary); font-weight: 500; }
+.badge { font-size: 11px; padding: 2px 8px; border-radius: var(--border-radius-md); font-weight: 500; }
+.badge-spark { background: #E6F1FB; color: #0C447C; }
+.badge-ignite { background: #FAEEDA; color: #633806; }
+.badge-blaze { background: #EEEDFE; color: #3C3489; }
+.badge-active { background: #EAF3DE; color: #27500A; }
+.badge-pending { background: #FAEEDA; color: #633806; }
+.badge-completed { background: #E6F1FB; color: #0C447C; }
+.badge-paused { background: #F1EFE8; color: #444441; }
+.client-row { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 80px; gap: 8px; align-items: center; padding: 10px 0; border-bottom: 0.5px solid var(--color-border-tertiary); font-size: 13px; }
+.project-row { display: grid; grid-template-columns: 2fr 1.5fr 1fr 1fr 80px; gap: 8px; align-items: center; padding: 10px 0; border-bottom: 0.5px solid var(--color-border-tertiary); font-size: 13px; }
+.section { display: none; }
+.section.active { display: block; }
+.progress-bar { height: 4px; background: var(--color-border-tertiary); border-radius: 2px; }
+.progress-fill { height: 4px; border-radius: 2px; background: #1D9E75; }
+input[type=text], select { font-size: 13px; padding: 6px 10px; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-secondary); background: var(--color-background-primary); color: var(--color-text-primary); }
+.add-btn { font-size: 13px; padding: 6px 14px; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-secondary); background: var(--color-background-primary); color: var(--color-text-primary); cursor: pointer; }
+</style>
+
+<div style="padding: 1rem 0;">
+
+<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem;">
+  <div>
+    <p style="font-size: 18px; font-weight: 500; margin: 0;">Agency dashboard</p>
+    <p style="font-size: 13px; color: var(--color-text-secondary); margin: 0;">May 2026</p>
+  </div>
+  <div style="background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 4px; display: flex; gap: 2px;">
+    <button class="nav-btn active" onclick="showSection('overview')">Overview</button>
+    <button class="nav-btn" onclick="showSection('clients')">Clients</button>
+    <button class="nav-btn" onclick="showSection('projects')">Projects</button>
+    <button class="nav-btn" onclick="showSection('revenue')">Revenue</button>
+  </div>
+</div>
+
+<div id="overview" class="section active">
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-bottom: 1.25rem;">
+    <div style="background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 1rem;">
+      <p style="font-size: 13px; color: var(--color-text-secondary); margin: 0 0 4px;">Total clients</p>
+      <p style="font-size: 24px; font-weight: 500; margin: 0;" id="ov-clients">0</p>
+    </div>
+    <div style="background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 1rem;">
+      <p style="font-size: 13px; color: var(--color-text-secondary); margin: 0 0 4px;">Active projects</p>
+      <p style="font-size: 24px; font-weight: 500; margin: 0;" id="ov-projects">0</p>
+    </div>
+    <div style="background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 1rem;">
+      <p style="font-size: 13px; color: var(--color-text-secondary); margin: 0 0 4px;">Monthly revenue</p>
+      <p style="font-size: 24px; font-weight: 500; margin: 0;" id="ov-revenue">R0</p>
+    </div>
+    <div style="background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 1rem;">
+      <p style="font-size: 13px; color: var(--color-text-secondary); margin: 0 0 4px;">Net profit</p>
+      <p style="font-size: 24px; font-weight: 500; margin: 0;" id="ov-profit">R0</p>
+    </div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+    <div style="background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1rem 1.25rem;">
+      <p style="font-size: 13px; font-weight: 500; margin: 0 0 0.75rem;">Revenue by package</p>
+      <div style="position: relative; height: 160px;">
+        <canvas id="pkgChart" role="img" aria-label="Revenue by package type doughnut chart">Package revenue breakdown.</canvas>
+      </div>
+      <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-top: 8px; font-size: 12px; color: var(--color-text-secondary);">
+        <span style="display:flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;border-radius:2px;background:#378ADD;"></span>Spark</span>
+        <span style="display:flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;border-radius:2px;background:#EF9F27;"></span>Ignite</span>
+        <span style="display:flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;border-radius:2px;background:#7F77DD;"></span>Blaze</span>
+      </div>
+    </div>
+    <div style="background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1rem 1.25rem;">
+      <p style="font-size: 13px; font-weight: 500; margin: 0 0 0.75rem;">Recent activity</p>
+      <div id="activity-feed" style="font-size: 13px; color: var(--color-text-secondary);">
+        <p style="color: var(--color-text-secondary); font-size: 13px;">No activity yet. Add clients and projects to get started.</p>
+      </div>
+    </div>
+  </div>
+
+  <div style="background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1rem 1.25rem;">
+    <p style="font-size: 13px; font-weight: 500; margin: 0 0 0.75rem;">Tool cost vs revenue</p>
+    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 6px;">
+      <span style="font-size: 13px; color: var(--color-text-secondary); min-width: 80px;">Tool costs</span>
+      <div style="flex: 1; background: var(--color-border-tertiary); border-radius: 2px; height: 8px;">
+        <div style="width: 100%; height: 8px; border-radius: 2px; background: #E24B4A;" id="cost-bar"></div>
+      </div>
+      <span style="font-size: 13px; font-weight: 500; min-width: 60px; text-align: right;">R2,525</span>
+    </div>
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <span style="font-size: 13px; color: var(--color-text-secondary); min-width: 80px;">Revenue</span>
+      <div style="flex: 1; background: var(--color-border-tertiary); border-radius: 2px; height: 8px;">
+        <div style="height: 8px; border-radius: 2px; background: #1D9E75; width: 0%;" id="rev-bar"></div>
+      </div>
+      <span style="font-size: 13px; font-weight: 500; min-width: 60px; text-align: right;" id="rev-bar-label">R0</span>
+    </div>
+  </div>
+</div>
+
+<div id="clients" class="section">
+  <div style="background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1rem 1.25rem; margin-bottom: 1rem;">
+    <p style="font-size: 13px; font-weight: 500; margin: 0 0 0.75rem;">Add client</p>
+    <div style="display: grid; grid-template-columns: 2fr 1.5fr 1fr 1fr auto; gap: 8px; align-items: center;">
+      <input type="text" id="c-name" placeholder="Business name">
+      <input type="text" id="c-contact" placeholder="Contact / WhatsApp">
+      <select id="c-package">
+        <option value="spark">Spark – R2,000</option>
+        <option value="ignite">Ignite – R5,500</option>
+        <option value="blaze">Blaze – R11,500</option>
+      </select>
+      <select id="c-status">
+        <option value="active">Active</option>
+        <option value="pending">Pending</option>
+        <option value="paused">Paused</option>
+      </select>
+      <button class="add-btn" onclick="addClient()"><i class="ti ti-plus" aria-hidden="true"></i> Add</button>
+    </div>
+  </div>
+
+  <div style="background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1rem 1.25rem;">
+    <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 80px; gap: 8px; padding-bottom: 8px; border-bottom: 0.5px solid var(--color-border-tertiary); font-size: 12px; font-weight: 500; color: var(--color-text-secondary);">
+      <span>Client</span><span>Package</span><span>Status</span><span>Monthly value</span><span></span>
+    </div>
+    <div id="client-list"><p style="font-size: 13px; color: var(--color-text-secondary); padding: 1rem 0; margin: 0;">No clients yet. Add your first one above.</p></div>
+    <div style="border-top: 0.5px solid var(--color-border-tertiary); padding-top: 8px; margin-top: 4px; display: flex; justify-content: space-between; font-size: 13px; font-weight: 500;">
+      <span>Total monthly</span><span id="client-total">R0</span>
+    </div>
+  </div>
+</div>
+
+<div id="projects" class="section">
+  <div style="background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1rem 1.25rem; margin-bottom: 1rem;">
+    <p style="font-size: 13px; font-weight: 500; margin: 0 0 0.75rem;">Add project</p>
+    <div style="display: grid; grid-template-columns: 2fr 1.5fr 1fr 1fr auto; gap: 8px; align-items: center;">
+      <input type="text" id="p-name" placeholder="Project name">
+      <select id="p-client"><option value="">Select client</option></select>
+      <select id="p-type">
+        <option value="video">Video ad</option>
+        <option value="social">Social management</option>
+        <option value="agent">AI agent setup</option>
+        <option value="branding">Branding</option>
+        <option value="full">Full suite</option>
+      </select>
+      <select id="p-status">
+        <option value="active">Active</option>
+        <option value="pending">Pending</option>
+        <option value="completed">Completed</option>
+        <option value="paused">Paused</option>
+      </select>
+      <button class="add-btn" onclick="addProject()"><i class="ti ti-plus" aria-hidden="true"></i> Add</button>
+    </div>
+  </div>
+
+  <div style="background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1rem 1.25rem;">
+    <div style="display: grid; grid-template-columns: 2fr 1.5fr 1fr 1fr 80px; gap: 8px; padding-bottom: 8px; border-bottom: 0.5px solid var(--color-border-tertiary); font-size: 12px; font-weight: 500; color: var(--color-text-secondary);">
+      <span>Project</span><span>Client</span><span>Type</span><span>Status</span><span></span>
+    </div>
+    <div id="project-list"><p style="font-size: 13px; color: var(--color-text-secondary); padding: 1rem 0; margin: 0;">No projects yet. Add a client first, then create a project.</p></div>
+  </div>
+</div>
+
+<div id="revenue" class="section">
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-bottom: 1.25rem;">
+    <div style="background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 1rem;">
+      <p style="font-size: 13px; color: var(--color-text-secondary); margin: 0 0 4px;">Gross revenue</p>
+      <p style="font-size: 24px; font-weight: 500; margin: 0;" id="rv-gross">R0</p>
+    </div>
+    <div style="background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 1rem;">
+      <p style="font-size: 13px; color: var(--color-text-secondary); margin: 0 0 4px;">Tool costs</p>
+      <p style="font-size: 24px; font-weight: 500; margin: 0;">R2,525</p>
+    </div>
+    <div style="background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 1rem;">
+      <p style="font-size: 13px; color: var(--color-text-secondary); margin: 0 0 4px;">Net profit</p>
+      <p style="font-size: 24px; font-weight: 500; margin: 0;" id="rv-profit">-R2,525</p>
+    </div>
+    <div style="background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 1rem;">
+      <p style="font-size: 13px; color: var(--color-text-secondary); margin: 0 0 4px;">Margin</p>
+      <p style="font-size: 24px; font-weight: 500; margin: 0;" id="rv-margin">—</p>
+    </div>
+  </div>
+
+  <div style="background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1rem 1.25rem; margin-bottom: 1rem;">
+    <p style="font-size: 13px; font-weight: 500; margin: 0 0 0.75rem;">Revenue per client</p>
+    <div style="position: relative; height: 200px;">
+      <canvas id="clientRevChart" role="img" aria-label="Bar chart showing revenue contribution per client">Client revenue contributions.</canvas>
+    </div>
+  </div>
+
+  <div style="background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1rem 1.25rem;">
+    <p style="font-size: 13px; font-weight: 500; margin: 0 0 0.75rem;">Client spend breakdown</p>
+    <div style="font-size: 12px; font-weight: 500; color: var(--color-text-secondary); display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 8px; padding-bottom: 8px; border-bottom: 0.5px solid var(--color-border-tertiary);">
+      <span>Client</span><span>Package</span><span style="text-align:right;">Monthly spend</span>
+    </div>
+    <div id="spend-list"><p style="font-size: 13px; color: var(--color-text-secondary); padding: 1rem 0; margin: 0;">No clients added yet.</p></div>
+  </div>
+</div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const TOOL_COST = 2525;
+const PKG = { spark: { label: 'Spark', value: 2000 }, ignite: { label: 'Ignite', value: 5500 }, blaze: { label: 'Blaze', value: 11500 } };
+const STATUS_COLORS = { active: 'badge-active', pending: 'badge-pending', completed: 'badge-completed', paused: 'badge-paused' };
+const PKG_COLORS = { spark: 'badge-spark', ignite: 'badge-ignite', blaze: 'badge-blaze' };
+
+let clients = [], projects = [], activity = [];
+let pkgChart, clientRevChart;
+
+function fmt(n) { return 'R' + Math.round(n).toLocaleString('en-ZA'); }
+
+function showSection(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  event.target.classList.add('active');
+  if (id === 'revenue') renderRevCharts();
+}
+
+function totalRevenue() { return clients.filter(c => c.status === 'active').reduce((s, c) => s + PKG[c.pkg].value, 0); }
+
+function addClient() {
+  const name = document.getElementById('c-name').value.trim();
+  const contact = document.getElementById('c-contact').value.trim();
+  const pkg = document.getElementById('c-package').value;
+  const status = document.getElementById('c-status').value;
+  if (!name) return;
+  const id = Date.now();
+  clients.push({ id, name, contact, pkg, status, added: new Date().toLocaleDateString('en-ZA') });
+  activity.unshift({ text: 'Client added: ' + name + ' (' + PKG[pkg].label + ')', time: 'just now' });
+  document.getElementById('c-name').value = '';
+  document.getElementById('c-contact').value = '';
+  renderAll();
+}
+
+function removeClient(id) {
+  const c = clients.find(x => x.id === id);
+  clients = clients.filter(x => x.id !== id);
+  projects = projects.filter(x => x.clientId !== id);
+  if (c) activity.unshift({ text: 'Client removed: ' + c.name, time: 'just now' });
+  renderAll();
+}
+
+function addProject() {
+  const name = document.getElementById('p-name').value.trim();
+  const clientId = parseInt(document.getElementById('p-client').value);
+  const type = document.getElementById('p-type').value;
+  const status = document.getElementById('p-status').value;
+  if (!name || !clientId) return;
+  const client = clients.find(c => c.id === clientId);
+  projects.push({ id: Date.now(), name, clientId, clientName: client ? client.name : '', type, status });
+  activity.unshift({ text: 'Project added: ' + name + ' for ' + (client ? client.name : ''), time: 'just now' });
+  document.getElementById('p-name').value = '';
+  renderAll();
+}
+
+function removeProject(id) {
+  projects = projects.filter(x => x.id !== id);
+  renderAll();
+}
+
+function renderAll() {
+  renderOverview();
+  renderClients();
+  renderProjects();
+  renderRevenue();
+}
+
+function renderOverview() {
+  const rev = totalRevenue();
+  const profit = rev - TOOL_COST;
+  document.getElementById('ov-clients').textContent = clients.length;
+  document.getElementById('ov-projects').textContent = projects.filter(p => p.status === 'active').length;
+  document.getElementById('ov-revenue').textContent = fmt(rev);
+  const profEl = document.getElementById('ov-profit');
+  profEl.textContent = fmt(profit);
+  profEl.style.color = profit >= 0 ? '#1D9E75' : '#E24B4A';
+  document.getElementById('rev-bar-label').textContent = fmt(rev);
+  const maxBar = Math.max(rev, TOOL_COST, 1);
+  document.getElementById('rev-bar').style.width = Math.round((rev / maxBar) * 100) + '%';
+  document.getElementById('cost-bar').style.width = Math.round((TOOL_COST / maxBar) * 100) + '%';
+
+  const feed = document.getElementById('activity-feed');
+  if (activity.length === 0) {
+    feed.innerHTML = '<p style="color: var(--color-text-secondary); font-size: 13px;">No activity yet.</p>';
+  } else {
+    feed.innerHTML = activity.slice(0, 5).map(a =>
+      '<div style="padding: 5px 0; border-bottom: 0.5px solid var(--color-border-tertiary); font-size: 13px;"><span>' + a.text + '</span><span style="float:right; color: var(--color-text-secondary); font-size: 11px;">' + a.time + '</span></div>'
+    ).join('');
+  }
+
+  const sparkRev = clients.filter(c => c.pkg === 'spark' && c.status === 'active').reduce((s,c) => s + 2000, 0);
+  const igniteRev = clients.filter(c => c.pkg === 'ignite' && c.status === 'active').reduce((s,c) => s + 5500, 0);
+  const blazeRev = clients.filter(c => c.pkg === 'blaze' && c.status === 'active').reduce((s,c) => s + 11500, 0);
+
+  const pkgData = [sparkRev, igniteRev, blazeRev];
+  const hasData = pkgData.some(v => v > 0);
+
+  if (pkgChart) {
+    pkgChart.data.datasets[0].data = hasData ? pkgData : [1, 1, 1];
+    pkgChart.update();
+  } else {
+    pkgChart = new Chart(document.getElementById('pkgChart'), {
+      type: 'doughnut',
+      data: {
+        labels: ['Spark', 'Ignite', 'Blaze'],
+        datasets: [{ data: hasData ? pkgData : [1,1,1], backgroundColor: ['#378ADD','#EF9F27','#7F77DD'], borderWidth: 0 }]
+      },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, cutout: '65%' }
+    });
+  }
+}
+
+function renderClients() {
+  const sel = document.getElementById('p-client');
+  const prev = sel.value;
+  sel.innerHTML = '<option value="">Select client</option>' + clients.map(c => '<option value="' + c.id + '">' + c.name + '</option>').join('');
+  if (prev) sel.value = prev;
+
+  const list = document.getElementById('client-list');
+  if (clients.length === 0) {
+    list.innerHTML = '<p style="font-size: 13px; color: var(--color-text-secondary); padding: 1rem 0; margin: 0;">No clients yet.</p>';
+    document.getElementById('client-total').textContent = 'R0';
+    return;
+  }
+  list.innerHTML = clients.map(c =>
+    '<div class="client-row">' +
+    '<div><p style="margin:0;font-size:13px;font-weight:500;">' + c.name + '</p><p style="margin:0;font-size:11px;color:var(--color-text-secondary);">' + (c.contact || '—') + '</p></div>' +
+    '<span class="badge ' + PKG_COLORS[c.pkg] + '">' + PKG[c.pkg].label + '</span>' +
+    '<span class="badge ' + STATUS_COLORS[c.status] + '">' + c.status + '</span>' +
+    '<span style="font-weight:500;">' + fmt(PKG[c.pkg].value) + '</span>' +
+    '<button onclick="removeClient(' + c.id + ')" style="background:none;border:none;cursor:pointer;color:var(--color-text-secondary);font-size:16px;" aria-label="Remove client"><i class="ti ti-trash"></i></button>' +
+    '</div>'
+  ).join('');
+  document.getElementById('client-total').textContent = fmt(totalRevenue());
+}
+
+function renderProjects() {
+  const list = document.getElementById('project-list');
+  if (projects.length === 0) {
+    list.innerHTML = '<p style="font-size: 13px; color: var(--color-text-secondary); padding: 1rem 0; margin: 0;">No projects yet.</p>';
+    return;
+  }
+  const typeLabels = { video: 'Video ad', social: 'Social mgmt', agent: 'AI agent', branding: 'Branding', full: 'Full suite' };
+  list.innerHTML = projects.map(p =>
+    '<div class="project-row">' +
+    '<span style="font-weight:500;">' + p.name + '</span>' +
+    '<span style="color:var(--color-text-secondary);">' + p.clientName + '</span>' +
+    '<span style="color:var(--color-text-secondary);">' + (typeLabels[p.type] || p.type) + '</span>' +
+    '<span class="badge ' + STATUS_COLORS[p.status] + '">' + p.status + '</span>' +
+    '<button onclick="removeProject(' + p.id + ')" style="background:none;border:none;cursor:pointer;color:var(--color-text-secondary);font-size:16px;" aria-label="Remove project"><i class="ti ti-trash"></i></button>' +
+    '</div>'
+  ).join('');
+}
+
+function renderRevenue() {
+  const rev = totalRevenue();
+  const profit = rev - TOOL_COST;
+  const margin = rev > 0 ? Math.round((profit / rev) * 100) : null;
+  document.getElementById('rv-gross').textContent = fmt(rev);
+  const profEl = document.getElementById('rv-profit');
+  profEl.textContent = fmt(profit);
+  profEl.style.color = profit >= 0 ? '#1D9E75' : '#E24B4A';
+  document.getElementById('rv-margin').textContent = margin !== null ? margin + '%' : '—';
+
+  const spendList = document.getElementById('spend-list');
+  if (clients.length === 0) {
+    spendList.innerHTML = '<p style="font-size: 13px; color: var(--color-text-secondary); padding: 1rem 0; margin: 0;">No clients added yet.</p>';
+  } else {
+    spendList.innerHTML = clients.map(c =>
+      '<div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 8px; padding: 8px 0; border-bottom: 0.5px solid var(--color-border-tertiary); font-size: 13px;">' +
+      '<span>' + c.name + '</span>' +
+      '<span class="badge ' + PKG_COLORS[c.pkg] + '">' + PKG[c.pkg].label + '</span>' +
+      '<span style="text-align:right; font-weight:500;">' + fmt(PKG[c.pkg].value) + '</span>' +
+      '</div>'
+    ).join('');
+  }
+}
+
+function renderRevCharts() {
+  const names = clients.map(c => c.name.length > 10 ? c.name.slice(0,10)+'…' : c.name);
+  const values = clients.map(c => PKG[c.pkg].value);
+  const colors = clients.map(c => c.pkg === 'spark' ? '#378ADD' : c.pkg === 'ignite' ? '#EF9F27' : '#7F77DD');
+
+  if (clientRevChart) {
+    clientRevChart.data.labels = names;
+    clientRevChart.data.datasets[0].data = values;
+    clientRevChart.data.datasets[0].backgroundColor = colors;
+    clientRevChart.update();
+  } else {
+    clientRevChart = new Chart(document.getElementById('clientRevChart'), {
+      type: 'bar',
+      data: {
+        labels: names.length ? names : ['No clients'],
+        datasets: [{ label: 'Monthly spend', data: values.length ? values : [0], backgroundColor: colors.length ? colors : ['#D3D1C7'], borderRadius: 4 }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { ticks: { autoSkip: false, font: { size: 11 } }, grid: { display: false } },
+          y: { ticks: { callback: v => 'R' + Math.round(v/1000) + 'k', font: { size: 11 } }, grid: { color: 'rgba(128,128,128,0.15)' } }
+        }
+      }
+    });
+  }
+}
+
+renderAll();
+</script>
