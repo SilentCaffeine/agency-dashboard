@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agency Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --accent: #F47920;
+    --accent-light: #fff4e5;
+    --accent-border: #f7b97a;
+    --accent-dark: #b85800;
+    --bg: #ffffff;
+    --bg2: #f5f5f5;
+    --bg3: #efefef;
+    --bd: #e0e0e0;
+    --bd2: #d0d0d0;
+    --tx: #1a1a1a;
+    --tx2: #666666;
+    --tx3: #999999;
+    --bgS: #eaf3de; --txS: #27500a; --bdS: #97c459;
+    --bgW: #faeeda; --txW: #633806; --bdW: #ef9f27;
+    --bgD: #fcebeb; --txD: #791f1f; --bdD: #e24b4a;
+    --bgI: var(--accent-light); --txI: var(--accent-dark); --bdI: var(--accent);
+    --r8: 8px; --r12: 12px;
+    --header: #1a1a1a;
+  }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    color: var(--tx);
+    background: #f0f0f0;
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  .header {
+    background: var(--header);
+    padding: 0 1.5rem;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .header-left { display: flex; align-items: center; gap: 12px; }
+  .header-title { font-size: 15px; font-weight: 600; color: #ffffff; letter-spacing: -0.2px; }
+  .header-sub { font-size: 11px; color: var(--accent); font-weight: 500; letter-spacing: 0.3px; }
+  .live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+  .header-date { font-size: 11px; color: #888; }
+
+  /* NAV TABS */
+  .nav { background: var(--bg); border-bottom: 1px solid var(--bd); padding: 0 1.5rem; display: flex; gap: 0; }
+  .nav-tab {
+    padding: 0 18px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--tx2);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: color 0.15s, border-color 0.15s;
+    user-select: none;
+  }
+  .nav-tab:hover { color: var(--tx); }
+  .nav-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .nav-tab i { font-size: 15px; }
+
+  /* MAIN */
+  .main { padding: 1.25rem 1.5rem; max-width: 1100px; margin: 0 auto; }
+
+  /* SECTION */
+  .section { display: none; }
+  .section.active { display: block; }
+
+  /* STAT CARDS */
+  .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 1.25rem; }
+  .stat-card { background: var(--bg); border: 1px solid var(--bd); border-radius: var(--r12); padding: 1rem 1.1rem; }
+  .stat-label { font-size: 11px; color: var(--tx2); font-weight: 500; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 6px; }
+  .stat-value { font-size: 26px; font-weight: 600; color: var(--tx); line-height: 1; }
+  .stat-sub { font-size: 11px; color: var(--tx3); margin-top: 4px; }
+  .stat-accent { color: var(--accent); }
+  .stat-success { color: #3b6d11; }
+  .stat-danger { color: #a32d2d; }
+
+  /* CARDS / PANELS */
+  .card { background: var(--bg); border: 1px solid var(--bd); border-radius: var(--r12); padding: 1.1rem 1.25rem; }
+  .card-title { font-size: 12px; font-weight: 600; color: var(--tx2); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 1rem; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 1.25rem; }
+  .grid-3 { display: grid; grid-template-columns: 2fr 1fr; gap: 12px; margin-bottom: 1.25rem; }
+
+  /* FORM ELEMENTS */
+  input[type=text], select {
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    padding: 7px 10px;
+    border-radius: var(--r8);
+    border: 1px solid var(--bd);
+    background: var(--bg2);
+    color: var(--tx);
+    outline: none;
+    width: 100%;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  input[type=text]:focus, select:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(244,121,32,0.15);
+    background: var(--bg);
+  }
+  .form-row { display: grid; gap: 8px; align-items: end; margin-bottom: 0.75rem; }
+  .form-label { font-size: 11px; color: var(--tx2); font-weight: 500; margin-bottom: 3px; }
+  .btn-add {
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 7px 16px;
+    border-radius: var(--r8);
+    border: none;
+    background: var(--accent);
+    color: #fff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    white-space: nowrap;
+    transition: background 0.15s;
+  }
+  .btn-add:hover { background: var(--accent-dark); }
+  .btn-icon {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--tx3);
+    font-size: 15px;
+    padding: 4px;
+    border-radius: var(--r8);
+    transition: color 0.15s, background 0.15s;
+  }
+  .btn-icon:hover { color: #a32d2d; background: var(--bgD); }
+
+  /* TABLE */
+  .tbl { width: 100%; border-collapse: collapse; table-layout: fixed; }
+  .tbl th { font-size: 11px; font-weight: 600; color: var(--tx2); text-transform: uppercase; letter-spacing: 0.4px; padding: 0 10px 8px; border-bottom: 1px solid var(--bd); text-align: left; }
+  .tbl td { font-size: 12px; color: var(--tx); padding: 9px 10px; border-bottom: 1px solid var(--bg3); vertical-align: middle; }
+  .tbl tr:last-child td { border-bottom: none; }
+  .tbl tr:hover td { background: var(--bg2); }
+  .tbl tfoot td { font-size: 12px; font-weight: 600; color: var(--tx); padding: 9px 10px; border-top: 1px solid var(--bd2); }
+
+  /* BADGES */
+  .badge { display: inline-flex; align-items: center; font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 20px; letter-spacing: 0.2px; }
+  .b-spark  { background: #e6f1fb; color: #0c447c; border: 1px solid #b5d4f4; }
+  .b-ignite { background: var(--bgW); color: var(--txW); border: 1px solid var(--bdW); }
+  .b-blaze  { background: #eeedfe; color: #3c3489; border: 1px solid #afa9ec; }
+  .b-active { background: var(--bgS); color: var(--txS); border: 1px solid var(--bdS); }
+  .b-pending{ background: var(--bgW); color: var(--txW); border: 1px solid var(--bdW); }
+  .b-paused { background: var(--bg3); color: var(--tx2); border: 1px solid var(--bd2); }
+  .b-completed{ background: #e6f1fb; color: #0c447c; border: 1px solid #b5d4f4; }
+
+  /* PROGRESS BAR */
+  .pbar { height: 6px; background: var(--bg3); border-radius: 3px; overflow: hidden; }
+  .pbar-fill { height: 6px; border-radius: 3px; background: var(--accent); transition: width 0.4s; }
+  .pbar-fill.green { background: #639922; }
+  .pbar-fill.red { background: #e24b4a; }
+
+  /* ACTIVITY */
+  .activity-item { display: flex; align-items: flex-start; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--bg3); }
+  .activity-item:last-child { border-bottom: none; }
+  .activity-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); margin-top: 4px; flex-shrink: 0; }
+  .activity-text { font-size: 12px; color: var(--tx); flex: 1; line-height: 1.5; }
+  .activity-time { font-size: 10px; color: var(--tx3); white-space: nowrap; }
+
+  /* COST BAR */
+  .cost-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .cost-label { font-size: 12px; color: var(--tx2); width: 90px; flex-shrink: 0; }
+  .cost-track { flex: 1; background: var(--bg3); border-radius: 3px; height: 8px; overflow: hidden; }
+  .cost-fill { height: 8px; border-radius: 3px; }
+  .cost-amount { font-size: 12px; font-weight: 600; color: var(--tx); width: 70px; text-align: right; flex-shrink: 0; }
+
+  /* EMPTY STATE */
+  .empty { text-align: center; padding: 2rem; color: var(--tx3); font-size: 12px; }
+
+  /* FOOTER */
+  .footer { text-align: center; font-size: 11px; color: var(--tx3); padding: 1.5rem; margin-top: 1rem; }
+
+  /* GUIDE STEPS */
+  .gstep { display: flex; gap: 12px; margin-bottom: 1rem; }
+  .gnum { width: 24px; height: 24px; border-radius: 50%; background: var(--accent-light); color: var(--accent-dark); border: 1px solid var(--accent); font-size: 11px; font-weight: 600; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .gtitle { font-size: 12px; font-weight: 600; color: var(--tx); margin-bottom: 2px; }
+  .gdesc { font-size: 12px; color: var(--tx2); line-height: 1.6; }
+
+  @media (max-width: 700px) {
+    .stats-grid { grid-template-columns: 1fr 1fr; }
+    .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    .main { padding: 1rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <div class="live-dot"></div>
+    <div>
+      <div class="header-title">Agency Dashboard</div>
+      <div class="header-sub">Client &amp; Revenue Tracker</div>
+    </div>
+  </div>
+  <div class="header-date" id="hdr-date"></div>
+</div>
+
+<div class="nav">
+  <div class="nav-tab active" onclick="showTab('overview',this)"><i class="ti ti-layout-dashboard"></i> Overview</div>
+  <div class="nav-tab" onclick="showTab('clients',this)"><i class="ti ti-users"></i> Clients</div>
+  <div class="nav-tab" onclick="showTab('projects',this)"><i class="ti ti-briefcase"></i> Projects</div>
+  <div class="nav-tab" onclick="showTab('revenue',this)"><i class="ti ti-chart-bar"></i> Revenue</div>
+</div>
+
+<div class="main">
+
+  <!-- OVERVIEW -->
+  <div id="overview" class="section active">
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Total clients</div>
+        <div class="stat-value" id="ov-clients">0</div>
+        <div class="stat-sub">onboarded</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Active projects</div>
+        <div class="stat-value" id="ov-projects">0</div>
+        <div class="stat-sub">in progress</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Monthly revenue</div>
+        <div class="stat-value stat-accent" id="ov-revenue">R0</div>
+        <div class="stat-sub">from active clients</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Net profit</div>
+        <div class="stat-value" id="ov-profit">-R2,525</div>
+        <div class="stat-sub" id="ov-profit-sub">after tool costs</div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">Revenue vs tool costs</div>
+        <div class="cost-row">
+          <div class="cost-label">Tool costs</div>
+          <div class="cost-track"><div class="cost-fill" id="bar-cost" style="width:100%;background:#e24b4a;"></div></div>
+          <div class="cost-amount">R2,525</div>
+        </div>
+        <div class="cost-row" style="margin-bottom:1.25rem;">
+          <div class="cost-label">Revenue</div>
+          <div class="cost-track"><div class="cost-fill" id="bar-rev" style="width:0%;background:#639922;"></div></div>
+          <div class="cost-amount" id="bar-rev-label">R0</div>
+        </div>
+        <div class="card-title">Package split</div>
+        <div style="position:relative;height:140px;"><canvas id="pkgChart" role="img" aria-label="Revenue by package type">Package split chart.</canvas></div>
+        <div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:10px;">
+          <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--tx2);"><span style="width:9px;height:9px;border-radius:2px;background:#378ADD;display:inline-block;"></span>Spark</span>
+          <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--tx2);"><span style="width:9px;height:9px;border-radius:2px;background:#F47920;display:inline-block;"></span>Ignite</span>
+          <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--tx2);"><span style="width:9px;height:9px;border-radius:2px;background:#7F77DD;display:inline-block;"></span>Blaze</span>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Activity feed</div>
+        <div id="activity-feed"><div class="empty"><i class="ti ti-activity" style="font-size:24px;display:block;margin-bottom:6px;"></i>No activity yet</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Break-even status</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">
+        <div style="background:var(--bg2);border-radius:var(--r8);padding:0.75rem 1rem;">
+          <div style="font-size:11px;color:var(--tx2);margin-bottom:3px;">Phase 1 only (R908/mo)</div>
+          <div style="font-size:13px;font-weight:600;color:var(--tx);">1 Spark client</div>
+        </div>
+        <div style="background:var(--bg2);border-radius:var(--r8);padding:0.75rem 1rem;">
+          <div style="font-size:11px;color:var(--tx2);margin-bottom:3px;">Full stack (R2,525/mo)</div>
+          <div style="font-size:13px;font-weight:600;color:var(--tx);">2 Ignite clients</div>
+        </div>
+        <div style="background:var(--bg2);border-radius:var(--r8);padding:0.75rem 1rem;">
+          <div style="font-size:11px;color:var(--tx2);margin-bottom:3px;">R10k profit target</div>
+          <div style="font-size:13px;font-weight:600;color:var(--tx);">2 Ignite + 1 Spark</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CLIENTS -->
+  <div id="clients" class="section">
+    <div class="card" style="margin-bottom:1.25rem;">
+      <div class="card-title">Add new client</div>
+      <div class="form-row" style="grid-template-columns:2fr 1.5fr 1fr 1fr auto;">
+        <div><div class="form-label">Business name</div><input type="text" id="c-name" placeholder="e.g. Kasi Bites Restaurant"></div>
+        <div><div class="form-label">Contact / WhatsApp</div><input type="text" id="c-contact" placeholder="+27 82 000 0000"></div>
+        <div><div class="form-label">Package</div>
+          <select id="c-pkg">
+            <option value="spark">Spark – R2,000</option>
+            <option value="ignite">Ignite – R5,500</option>
+            <option value="blaze">Blaze – R11,500</option>
+          </select>
+        </div>
+        <div><div class="form-label">Status</div>
+          <select id="c-status">
+            <option value="active">Active</option>
+            <option value="pending">Pending</option>
+            <option value="paused">Paused</option>
+          </select>
+        </div>
+        <div style="padding-top:18px;"><button class="btn-add" onclick="addClient()"><i class="ti ti-plus"></i> Add</button></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Client list</div>
+      <table class="tbl">
+        <colgroup><col style="width:28%"><col style="width:20%"><col style="width:12%"><col style="width:12%"><col style="width:15%"><col style="width:8%"><col style="width:5%"></colgroup>
+        <thead><tr>
+          <th>Client</th><th>Contact</th><th>Package</th><th>Status</th><th>Monthly value</th><th>Since</th><th></th>
+        </tr></thead>
+        <tbody id="client-tbody"></tbody>
+        <tfoot><tr>
+          <td colspan="4" style="color:var(--tx2);">Total monthly revenue</td>
+          <td id="client-total" style="color:var(--accent);">R0</td>
+          <td colspan="2"></td>
+        </tr></tfoot>
+      </table>
+      <div id="client-empty" class="empty"><i class="ti ti-users" style="font-size:22px;display:block;margin-bottom:6px;"></i>No clients yet — add your first one above</div>
+    </div>
+  </div>
+
+  <!-- PROJECTS -->
+  <div id="projects" class="section">
+    <div class="card" style="margin-bottom:1.25rem;">
+      <div class="card-title">Add new project</div>
+      <div class="form-row" style="grid-template-columns:2fr 1.5fr 1fr 1fr auto;">
+        <div><div class="form-label">Project name</div><input type="text" id="p-name" placeholder="e.g. March video ad series"></div>
+        <div><div class="form-label">Client</div><select id="p-client"><option value="">Select client</option></select></div>
+        <div><div class="form-label">Type</div>
+          <select id="p-type">
+            <option value="video">Video ad</option>
+            <option value="social">Social management</option>
+            <option value="agent">AI agent setup</option>
+            <option value="branding">Branding</option>
+            <option value="full">Full suite</option>
+          </select>
+        </div>
+        <div><div class="form-label">Status</div>
+          <select id="p-status">
+            <option value="active">Active</option>
+            <option value="pending">Pending</option>
+            <option value="completed">Completed</option>
+            <option value="paused">Paused</option>
+          </select>
+        </div>
+        <div style="padding-top:18px;"><button class="btn-add" onclick="addProject()"><i class="ti ti-plus"></i> Add</button></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Project tracker</div>
+      <table class="tbl">
+        <colgroup><col style="width:28%"><col style="width:22%"><col style="width:18%"><col style="width:14%"><col style="width:13%"><col style="width:5%"></colgroup>
+        <thead><tr><th>Project</th><th>Client</th><th>Type</th><th>Status</th><th>Added</th><th></th></tr></thead>
+        <tbody id="project-tbody"></tbody>
+      </table>
+      <div id="project-empty" class="empty"><i class="ti ti-briefcase" style="font-size:22px;display:block;margin-bottom:6px;"></i>No projects yet — add clients first then create a project</div>
+    </div>
+  </div>
+
+  <!-- REVENUE -->
+  <div id="revenue" class="section">
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Gross revenue</div>
+        <div class="stat-value stat-accent" id="rv-gross">R0</div>
+        <div class="stat-sub">active clients only</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Tool costs</div>
+        <div class="stat-value">R2,525</div>
+        <div class="stat-sub">monthly subscriptions</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Net profit</div>
+        <div class="stat-value" id="rv-profit">-R2,525</div>
+        <div class="stat-sub">after all costs</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Margin</div>
+        <div class="stat-value" id="rv-margin">—</div>
+        <div class="stat-sub">profit percentage</div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:1.25rem;">
+      <div class="card-title">Revenue per client</div>
+      <div style="position:relative;height:200px;"><canvas id="clientRevChart" role="img" aria-label="Bar chart of revenue per client">Client revenue chart.</canvas></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Client spend breakdown</div>
+      <table class="tbl">
+        <colgroup><col style="width:40%"><col style="width:20%"><col style="width:20%"><col style="width:20%"></colgroup>
+        <thead><tr><th>Client</th><th>Package</th><th>Status</th><th style="text-align:right;">Monthly spend</th></tr></thead>
+        <tbody id="spend-tbody"></tbody>
+        <tfoot><tr>
+          <td colspan="3" style="color:var(--tx2);">Total</td>
+          <td style="text-align:right;color:var(--accent);" id="spend-total">R0</td>
+        </tr></tfoot>
+      </table>
+      <div id="spend-empty" class="empty"><i class="ti ti-receipt" style="font-size:22px;display:block;margin-bottom:6px;"></i>No clients added yet</div>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">Agency Dashboard &nbsp;·&nbsp; Internal use only &nbsp;·&nbsp; <span id="footer-year"></span></div>
+
+<script>
+const TOOL_COST = 2525;
+const PKG = {
+  spark:  { label:'Spark',  value:2000  },
+  ignite: { label:'Ignite', value:5500  },
+  blaze:  { label:'Blaze',  value:11500 }
+};
+const TYPE_LABELS = { video:'Video ad', social:'Social mgmt', agent:'AI agent', branding:'Branding', full:'Full suite' };
+const PKG_BADGE   = { spark:'b-spark', ignite:'b-ignite', blaze:'b-blaze' };
+const STATUS_BADGE = { active:'b-active', pending:'b-pending', paused:'b-paused', completed:'b-completed' };
+
+let clients = [], projects = [], activity = [];
+let pkgChart, revChart;
+
+function fmt(n){ return 'R' + Math.round(n).toLocaleString('en-ZA'); }
+function today(){ return new Date().toLocaleDateString('en-ZA',{day:'2-digit',month:'short',year:'numeric'}); }
+function now(){ return new Date().toLocaleTimeString('en-ZA',{hour:'2-digit',minute:'2-digit'}); }
+
+document.getElementById('hdr-date').textContent = today();
+document.getElementById('footer-year').textContent = new Date().getFullYear();
+
+function showTab(id, el){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  el.classList.add('active');
+  if(id==='revenue') renderRevChart();
+}
+
+function totalRevenue(){ return clients.filter(c=>c.status==='active').reduce((s,c)=>s+PKG[c.pkg].value,0); }
+
+function addClient(){
+  const name = document.getElementById('c-name').value.trim();
+  if(!name) return;
+  const id = Date.now();
+  clients.push({ id, name,
+    contact: document.getElementById('c-contact').value.trim(),
+    pkg:     document.getElementById('c-pkg').value,
+    status:  document.getElementById('c-status').value,
+    added:   today()
+  });
+  activity.unshift({ text: 'Client added: ' + name, time: now() });
+  document.getElementById('c-name').value = '';
+  document.getElementById('c-contact').value = '';
+  renderAll();
+}
+
+function removeClient(id){
+  const c = clients.find(x=>x.id===id);
+  clients = clients.filter(x=>x.id!==id);
+  projects = projects.filter(x=>x.clientId!==id);
+  if(c) activity.unshift({ text:'Client removed: '+c.name, time: now() });
+  renderAll();
+}
+
+function addProject(){
+  const name = document.getElementById('p-name').value.trim();
+  const clientId = parseInt(document.getElementById('p-client').value);
+  if(!name || !clientId) return;
+  const client = clients.find(c=>c.id===clientId);
+  projects.push({ id:Date.now(), name, clientId, clientName: client?client.name:'', type: document.getElementById('p-type').value, status: document.getElementById('p-status').value, added: today() });
+  activity.unshift({ text:'Project added: '+name+(client?' for '+client.name:''), time: now() });
+  document.getElementById('p-name').value = '';
+  renderAll();
+}
+
+function removeProject(id){
+  projects = projects.filter(x=>x.id!==id);
+  renderAll();
+}
+
+function renderAll(){
+  renderOverview();
+  renderClients();
+  renderProjects();
+  renderRevenuePage();
+}
+
+function renderOverview(){
+  const rev = totalRevenue();
+  const profit = rev - TOOL_COST;
+  document.getElementById('ov-clients').textContent = clients.length;
+  document.getElementById('ov-projects').textContent = projects.filter(p=>p.status==='active').length;
+  document.getElementById('ov-revenue').textContent = fmt(rev);
+  const pe = document.getElementById('ov-profit');
+  pe.textContent = fmt(profit);
+  pe.className = 'stat-value ' + (profit>=0?'stat-success':'stat-danger');
+  document.getElementById('ov-profit-sub').textContent = profit>=0 ? 'profit after tools' : 'after tool costs';
+
+  const max = Math.max(rev, TOOL_COST, 1);
+  document.getElementById('bar-rev').style.width = Math.round((rev/max)*100)+'%';
+  document.getElementById('bar-rev-label').textContent = fmt(rev);
+
+  const sRev = clients.filter(c=>c.pkg==='spark'&&c.status==='active').reduce((s,c)=>s+2000,0);
+  const iRev = clients.filter(c=>c.pkg==='ignite'&&c.status==='active').reduce((s,c)=>s+5500,0);
+  const bRev = clients.filter(c=>c.pkg==='blaze'&&c.status==='active').reduce((s,c)=>s+11500,0);
+  const hasData = sRev+iRev+bRev > 0;
+
+  if(pkgChart){
+    pkgChart.data.datasets[0].data = hasData?[sRev,iRev,bRev]:[1,1,1];
+    pkgChart.update();
+  } else {
+    pkgChart = new Chart(document.getElementById('pkgChart'),{
+      type:'doughnut',
+      data:{ labels:['Spark','Ignite','Blaze'], datasets:[{ data:hasData?[sRev,iRev,bRev]:[1,1,1], backgroundColor:['#378ADD','#F47920','#7F77DD'], borderWidth:0 }] },
+      options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:false } }, cutout:'65%' }
+    });
+  }
+
+  const feed = document.getElementById('activity-feed');
+  if(activity.length===0){
+    feed.innerHTML = '<div class="empty"><i class="ti ti-activity" style="font-size:22px;display:block;margin-bottom:6px;"></i>No activity yet</div>';
+  } else {
+    feed.innerHTML = activity.slice(0,6).map(a=>
+      '<div class="activity-item"><div class="activity-dot"></div><div class="activity-text">'+a.text+'</div><div class="activity-time">'+a.time+'</div></div>'
+    ).join('');
+  }
+}
+
+function renderClients(){
+  const sel = document.getElementById('p-client');
+  const prev = sel.value;
+  sel.innerHTML = '<option value="">Select client</option>' + clients.map(c=>'<option value="'+c.id+'">'+c.name+'</option>').join('');
+  if(prev) sel.value = prev;
+
+  const tbody = document.getElementById('client-tbody');
+  const empty = document.getElementById('client-empty');
+  if(clients.length===0){ tbody.innerHTML=''; empty.style.display='block'; document.getElementById('client-total').textContent='R0'; return; }
+  empty.style.display='none';
+  tbody.innerHTML = clients.map(c=>
+    '<tr>' +
+    '<td style="font-weight:500;">'+c.name+'</td>' +
+    '<td style="color:var(--tx2);">'+( c.contact||'—')+'</td>' +
+    '<td><span class="badge '+PKG_BADGE[c.pkg]+'">'+PKG[c.pkg].label+'</span></td>' +
+    '<td><span class="badge '+STATUS_BADGE[c.status]+'">'+c.status+'</span></td>' +
+    '<td style="font-weight:600;">'+fmt(PKG[c.pkg].value)+'</td>' +
+    '<td style="color:var(--tx3);font-size:11px;">'+c.added+'</td>' +
+    '<td><button class="btn-icon" onclick="removeClient('+c.id+')" aria-label="Remove"><i class="ti ti-trash"></i></button></td>' +
+    '</tr>'
+  ).join('');
+  document.getElementById('client-total').textContent = fmt(totalRevenue());
+}
+
+function renderProjects(){
+  const tbody = document.getElementById('project-tbody');
+  const empty = document.getElementById('project-empty');
+  if(projects.length===0){ tbody.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  tbody.innerHTML = projects.map(p=>
+    '<tr>' +
+    '<td style="font-weight:500;">'+p.name+'</td>' +
+    '<td style="color:var(--tx2);">'+p.clientName+'</td>' +
+    '<td style="color:var(--tx2);">'+(TYPE_LABELS[p.type]||p.type)+'</td>' +
+    '<td><span class="badge '+STATUS_BADGE[p.status]+'">'+p.status+'</span></td>' +
+    '<td style="color:var(--tx3);font-size:11px;">'+p.added+'</td>' +
+    '<td><button class="btn-icon" onclick="removeProject('+p.id+')" aria-label="Remove"><i class="ti ti-trash"></i></button></td>' +
+    '</tr>'
+  ).join('');
+}
+
+function renderRevenuePage(){
+  const rev = totalRevenue();
+  const profit = rev - TOOL_COST;
+  const margin = rev>0 ? Math.round((profit/rev)*100) : null;
+  document.getElementById('rv-gross').textContent = fmt(rev);
+  const rpe = document.getElementById('rv-profit');
+  rpe.textContent = fmt(profit);
+  rpe.className = 'stat-value ' + (profit>=0?'stat-success':'stat-danger');
+  document.getElementById('rv-margin').textContent = margin!==null ? margin+'%' : '—';
+
+  const spend = document.getElementById('spend-tbody');
+  const spEmpty = document.getElementById('spend-empty');
+  if(clients.length===0){ spend.innerHTML=''; spEmpty.style.display='block'; document.getElementById('spend-total').textContent='R0'; return; }
+  spEmpty.style.display='none';
+  spend.innerHTML = clients.map(c=>
+    '<tr>' +
+    '<td style="font-weight:500;">'+c.name+'</td>' +
+    '<td><span class="badge '+PKG_BADGE[c.pkg]+'">'+PKG[c.pkg].label+'</span></td>' +
+    '<td><span class="badge '+STATUS_BADGE[c.status]+'">'+c.status+'</span></td>' +
+    '<td style="text-align:right;font-weight:600;">'+fmt(PKG[c.pkg].value)+'</td>' +
+    '</tr>'
+  ).join('');
+  document.getElementById('spend-total').textContent = fmt(rev);
+}
+
+function renderRevChart(){
+  const names = clients.map(c=>c.name.length>12?c.name.slice(0,12)+'…':c.name);
+  const values = clients.map(c=>PKG[c.pkg].value);
+  const colors = clients.map(c=>c.pkg==='spark'?'#378ADD':c.pkg==='ignite'?'#F47920':'#7F77DD');
+  if(revChart){
+    revChart.data.labels = names.length?names:['No clients'];
+    revChart.data.datasets[0].data = values.length?values:[0];
+    revChart.data.datasets[0].backgroundColor = colors.length?colors:['#e0e0e0'];
+    revChart.update();
+  } else {
+    revChart = new Chart(document.getElementById('clientRevChart'),{
+      type:'bar',
+      data:{ labels:names.length?names:['No clients'], datasets:[{ label:'Monthly spend', data:values.length?values:[0], backgroundColor:colors.length?colors:['#e0e0e0'], borderRadius:5 }] },
+      options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ display:false } },
+        scales:{
+          x:{ ticks:{ autoSkip:false, font:{ family:'Inter', size:11 } }, grid:{ display:false } },
+          y:{ ticks:{ callback:v=>'R'+Math.round(v/1000)+'k', font:{ family:'Inter', size:11 } }, grid:{ color:'rgba(0,0,0,0.06)' } }
+        }
+      }
+    });
+  }
+}
+
+renderAll();
+</script>
+</body>
+</html>
